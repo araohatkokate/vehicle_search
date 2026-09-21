@@ -1,6 +1,6 @@
-# Copart Conversational Search
+# Conversational Search Assistant
 
-A conversational search experience over synthetic Copart-style vehicle
+A conversational search experience over synthetic style vehicle
 inventory. Describe what you want in plain English, then keep refining it
 across turns — the app tracks filter state per session and applies each
 message as a *diff* against it, not a full re-specification.
