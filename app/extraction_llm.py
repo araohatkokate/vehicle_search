@@ -79,7 +79,7 @@ _TOOL = {
 
 
 def _system_prompt() -> str:
-    makes_models = {make: models for make, models in sorted(ref.MODELS_BY_MAKE.items())}
+    makes_models = {make: sorted(models) for make, models in sorted(ref.MODELS_BY_MAKE.items())}
     return f"""You extract structured search filters for a used/salvage vehicle
 inventory search (Copart-style lot listings). You will be shown the CURRENT
 filters already applied in this conversation and the user's newest message.

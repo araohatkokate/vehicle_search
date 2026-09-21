@@ -21,7 +21,7 @@ from pydantic import BaseModel
 load_dotenv()
 
 from app import guardrails, response, search, session
-from app.extraction import get_extractor
+from app.extraction import FallbackExtractor, get_extractor
 
 app = FastAPI(title="Copart Conversational Search")
 
@@ -29,6 +29,7 @@ STATIC_DIR = Path(__file__).parent.parent / "static"
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 _extractor, _extractor_mode = get_extractor()
+_fallback_extractor = FallbackExtractor()
 
 MAX_MESSAGE_LEN = 2000
 
@@ -80,7 +81,16 @@ def chat(req: ChatRequest) -> ChatResponse:
             total_matches=0,
         )
 
-    diff = _extractor.extract(message, filters)
+    # extraction guardrail continued: an LLM call can fail for reasons that
+    # have nothing to do with the user's message (rate limit, billing,
+    # network blip). Degrade to the rule-based extractor for this turn
+    # rather than 500ing the whole request.
+    turn_mode = _extractor_mode
+    try:
+        diff = _extractor.extract(message, filters)
+    except Exception:
+        diff = _fallback_extractor.extract(message, filters)
+        turn_mode = "fallback"
 
     if diff.off_topic:
         return ChatResponse(
@@ -108,7 +118,9 @@ def chat(req: ChatRequest) -> ChatResponse:
     filters.apply(validated.diff)
 
     result = search.search(filters)
-    reply = response.generate_response(message, filters, result, _extractor_mode)
+    reply = response.generate_response(message, filters, result, turn_mode)
+    if turn_mode != _extractor_mode:
+        reply += "\n\n(Note: the AI assistant was temporarily unavailable, so this used basic keyword matching instead.)"
     if validated.dropped:
         reply += "\n\n(Note: " + "; ".join(validated.dropped) + ".)"
 
