@@ -148,5 +148,5 @@ class LLMExtractor:
         # fail safe into a clarification rather than silently doing nothing.
         return FilterDiff(
             clarification_needed=True,
-            clarification_question="Sorry, I didn't quite catch that — could you rephrase what you're looking for?",
+            clarification_question="Sorry, I didn't quite catch that - could you rephrase what you're looking for?",
         )

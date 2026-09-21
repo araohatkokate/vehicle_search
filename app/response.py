@@ -37,7 +37,7 @@ def _template_response(filters: FilterState, result: SearchResult) -> str:
                 f"Currently applied: {json.dumps(active)}. Try loosening one, "
                 "e.g. widening the price or mileage range, or dropping a location filter."
             )
-        return "No lots match right now — try describing what you're looking for, e.g. \"Toyota SUVs under $10k\"."
+        return "No lots match right now - try describing what you're looking for, e.g. \"Toyota SUVs under $10k\"."
 
     lines = [_row_summary(row) for row in result.rows]
     header = f"Found {result.total_matches} matching lot{'s' if result.total_matches != 1 else ''}"
